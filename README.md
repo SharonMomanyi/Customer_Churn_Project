@@ -92,7 +92,7 @@ This analysis is for exploring the distribution of some features for a better un
 
 **1. The target variable `'churn'`**
 
-![Churn_distribution](images/Churn Distribution.PNG)
+![Churn_distribution](Images/Churn_Distribution.PNG)
 
 * Most customers fall under the `False` category. Those who churn range between 500-600 while those who dont are well over 2,500.
 
