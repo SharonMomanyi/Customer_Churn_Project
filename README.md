@@ -4,9 +4,9 @@
 
 Customer Churn is a major challange for businesses. In the Telecommunication industry, it occurs when customers switch to different providers due to pricing, service quality, or even competitive offers.
 
-My aim is to understand the patterns of these customers who churn and also build a model that will predict whether a customer will 'soon' stop doing business with SyriaTel Telecommunications.
+The aim is to understand the patterns of these customers who churn and also build a model that will predict whether a customer will 'soon' stop doing business with SyriaTel Telecommunications.
 
-The stakeholders for my project are different departments in SyriaTel. These include the Executive Office, the Customer Relations and Support department and the Marketing Department.
+The stakeholders for this project are different departments in SyriaTel. These include the Executive Office, the Customer Relations and Support department and the Marketing Department.
 
 
 **OBJECTIVES**
@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler scaler = StandardScaler()
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score,confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
@@ -29,7 +30,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 ## DATA UNDERSTANDING 
 
-I will be working with a dataset from Kaggle(https://www.kaggle.com/datasets/becksddf/churn-in-telecoms-dataset/code). The data is contained in `Customer_Churn_Data.csv` and each record represents a customer, and the columns are the attributes of the customers, ranging from their phone number, state, number of customer service calls they have made, whether they have left or are still a customer, among other attributes.
+We will be working with a dataset from Kaggle(https://www.kaggle.com/datasets/becksddf/churn-in-telecoms-dataset/code). The data is contained in `Customer_Churn_Data.csv` and each record represents a customer, and the columns are the attributes of the customers, ranging from their phone number, state, number of customer service calls they have made, whether they have left or are still a customer, among other attributes.
 
 
 Here's a summary of the columns:
@@ -305,9 +306,7 @@ X_test_tr.head()
 
 ## 1. Baseline Model
 
-I will build a regression model, which will help classify whether a customer will leave, `True` or not, `False`
-
-from sklearn.linear_model import LogisticRegression
+Let's build a regression model, which will help classify whether a customer will leave, `True` or not, `False`
 
 logreg = LogisticRegression(fit_intercept=False, C=1e12, solver='liblinear')
 baseline_model = logreg.fit(X_train_tr, y_train)
@@ -420,15 +419,12 @@ From the above analysis, it is evident that the dataset is imbalnced as we have 
 
 ## 2. Random Forest 
 
-I will now build a Random Forest classifier since Logistic regression is producing imbalanced classes.
+We will now build a Random Forest classifier since Logistic regression is producing imbalanced classes.
 
-The parameters i will include in the model are:
+The parameters we will include in the model are:
         `class_weight='balanced'` to deal with the class imbalance,
         `n_estimators=100` which is the number of decision trees in the forest and
         `random_state=42` which ensures reproducibility
-
-#Import necessary libraries 
-from sklearn.ensemble import RandomForestClassifier
 
 #Initialize the model
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
@@ -527,7 +523,7 @@ The recall for the true class is at 53%, but it could be better.
 
 Since the model is overfitting on the training data, i will hypertune the parameters to reduce it.
 
-I will use `GridSearchCV` to find the best parameters.
+We will use `GridSearchCV` to find the best parameters.
 
 #Import libraries
 from sklearn.model_selection import GridSearchCV
@@ -627,10 +623,7 @@ For this model, these are the features that heavily impact the predictions of a 
 The top 3 features contributing the most to customer churn are in agreement with the findings from the Exploratory Data Analysis.
 
  ## 3. Decision Tree 
-
-#Import necessary libraries
-from sklearn.tree import DecisionTreeClassifier
-
+ 
 #Initialize the model
 dt_model = DecisionTreeClassifier(criterion='entropy', random_state=42)
 
@@ -731,7 +724,7 @@ This model is missing 43 customers that churn (False Negatives) and is predictin
 
 ## Hypertuning Parameters
 
-To deal with the overfittig, i will hypertune the parameters. We will use `GridSearchCV` to find the best parameters.
+To deal with the overfittig, let's hypertune the parameters. We will use `GridSearchCV` to find the best parameters.
 
 from sklearn.model_selection import GridSearchCV
 
