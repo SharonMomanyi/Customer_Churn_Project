@@ -1,5 +1,6 @@
 # Customer_Churn_Project
-# BUSINESS UNDERSTANDING
+
+## OVERVIEW
 
 Customer Churn is a major challange for businesses. In the Telecommunication industry, it occurs when customers switch to different providers due to pricing, service quality, or even competitive offers.
 
@@ -13,7 +14,20 @@ The stakeholders for my project are different departments in SyriaTel. These inc
 1. Identify the factors that contribute to customer churn.
 2. Build a model to predict customer churn.
 
-# DATA UNDERSTANDING 
+
+### Required Libraries
+import pandas as pd
+import matplotlib.pyplot as plt 
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler scaler = StandardScaler()
+from sklearn.metrics import accuracy_score,confusion_matrix, classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+
+## DATA UNDERSTANDING 
 
 I will be working with a dataset from Kaggle(https://www.kaggle.com/datasets/becksddf/churn-in-telecoms-dataset/code). The data is contained in `Customer_Churn_Data.csv` and each record represents a customer, and the columns are the attributes of the customers, ranging from their phone number, state, number of customer service calls they have made, whether they have left or are still a customer, among other attributes.
 
@@ -62,20 +76,17 @@ Here's a summary of the columns:
 
 * churn:  Whether the customer churned or not (True/False).
 
-### LOADING AND DISPLAYING THE DATASET
-
-import pandas as pd
-
+#Loading and displaying the dataset
 df = pd.read_csv("Customer_Churn_Data.csv")
 df.head(10)
 
-# Rename the column names
+#Rename the column names
 df.columns = df.columns.str.replace(" ", "_")
 print(df.columns)
 
-### EXPLORATORY DATA ANALYSIS
+## EXPLORATORY DATA ANALYSIS
 
-# Check the data types of the columns
+#Check the data types of the columns
 df.info()
 
 * We have object, integer, float and boolean data types. For modelling purposes, I will convert and transform relevant columns.
@@ -83,7 +94,7 @@ df.info()
 
 * There are no misssing values in the columns as seen above.
 
-# Check descriptive statistics
+#Check descriptive statistics
 df.describe()
 
 ## Univariate Analysis
@@ -109,7 +120,7 @@ This analysis is for exploring the distribution of some features for a better un
 ***********************
 
 
-## Bivariate
+## Bivariate Analysis
 
 Let's now explore the relationship between some features and the target to look out for patterns and insights.
 
@@ -152,7 +163,6 @@ Let's now explore the relationship between some features and the target to look 
 * Higher churn rates are involved with customers who have a lot of daily minutes. Majority of those who are retained have about 140 - 210 day minutes while majority of those who churn have 150 - 260 day minutes.
 
 
-
 **5. Total Night Minutes and Churn**
 
 ![Churn_distribution](Images/Total_Night_Minutes_vs_Churn.PNG)
@@ -162,7 +172,6 @@ Let's now explore the relationship between some features and the target to look 
 * Majority of the customers who churn have almost the same night minutes as majority of those who are retained.
 
 * Comparing the churn rates at night and during the day using minutes, it is evident that most customers who churn have a lot of daily minutes, and therefore are the most expensed since charges are higher during the day.
-
 
 
 **6. Customer Service Calls and Churn**
@@ -192,48 +201,45 @@ Let's now explore the relationship between some features and the target to look 
 # DATA PREPARATION
 
 
-# Define X and y
+#Define X and y
 y = df[['churn']]
 X = df.drop(['churn','phone_number'], axis=1)
 
-## Split the data
+#Split the data
 
 Data preparation should happen after the data has been split to avoid data leakage.
 Data leakage will lead to overly optimistic perfomance metrics during model validation since the model may have had access to information before the split.
 
-# Splitting the data using train-test split
-from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 X_train.head()
 
 X_test.head()
 
-### OneHotEncode categorical features
+## OneHotEncode categorical features
 
-from sklearn.preprocessing import OneHotEncoder
 
-# Define categorical columns
+#Define categorical columns
 cat_columns = ['state', 'area_code', 'international_plan', 'voice_mail_plan']
 
-# instantiate OneHotEncoder
+#instantiate OneHotEncoder
 ohe = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
 
-# Fit and transform training data then convert to a dataframe
+#Fit and transform training data then convert to a dataframe
 X_train_ohe = pd.DataFrame(ohe.fit_transform(X_train[cat_columns]), 
                            columns=ohe.get_feature_names_out(cat_columns), 
                            index=X_train.index)
 
-# Transform Test set
+#Transform Test set
 X_test_ohe = pd.DataFrame(ohe.transform(X_test[cat_columns]),
                            index=X_test.index,
                            columns=ohe.get_feature_names_out(cat_columns))
 
-# Drop original categorical columns from X_train and X_test
+#Drop original categorical columns from X_train and X_test
 X_train = X_train.drop(columns=cat_columns)
 X_test = X_test.drop(columns=cat_columns)
 
-# Concatenate one-hot encoded features back
+#Concatenate one-hot encoded features back
 X_train = pd.concat([X_train, X_train_ohe], axis=1)
 X_test = pd.concat([X_test, X_test_ohe], axis=1)
 
@@ -243,27 +249,27 @@ X_train.head()
 
 X_test.head()
 
-### Standardize Numeric Features
+## Standardize Numeric Features
 
-# Instantiate the scaler 
+#Instantiate the scaler 
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 
 X_train_numeric= X_train.copy()
 
-# Filter to remain with relevant columns
+#Filter to remain with relevant columns
 numeric_cols = df.select_dtypes('number')
 numeric_cols = numeric_cols.drop('area_code', axis=1)
 
 X_train_numeric = X_train_numeric[numeric_cols.columns] # a subset of X_train, untransformed
 
-# Standardize the training set
+#Standardize the training set
 X_train_standardized = pd.DataFrame(scaler.fit_transform(X_train_numeric),
                                    columns=X_train_numeric.columns,
                                    index=X_train_numeric.index)
 X_train_standardized.head()
 
-# Transform the test set
+#Transform the test set
 X_test_standardized = pd.DataFrame(scaler.transform(X_test[numeric_cols.columns]),
                                    columns=X_test[numeric_cols.columns].columns,
                                    index=X_test[numeric_cols.columns].index)
@@ -271,11 +277,11 @@ X_test_standardized.head()
 
 ### Combining the datasets into one
 
-# Drop non-transformed columns
+#Drop non-transformed columns
 cols_to_drop = cat_columns + numeric_cols.columns.tolist()
 X_train_filtered = X_train.drop(columns=cols_to_drop, errors='ignore')
 
-# Bring them together
+#Bring them together
 X_train_tr = pd.concat([X_train_filtered, X_train_ohe, X_train_standardized], axis=1)
 X_train_tr.head()
 
@@ -287,11 +293,11 @@ The `'phone_number'` column seems to be a unique identifier for the customers so
 
 ### Combining Test set into one.
 
-# Drop non-transformed columns
+#Drop non-transformed columns
 cols_to_drop = cat_columns + numeric_cols.columns.tolist()
 X_test_filtered = X_test.drop(columns=cols_to_drop, errors='ignore')
 
-# Bring them together
+#Bring them together
 X_test_tr = pd.concat([X_test_filtered, X_test_ohe, X_test_standardized], axis=1)
 X_test_tr.head()
 
@@ -421,18 +427,18 @@ The parameters i will include in the model are:
         `n_estimators=100` which is the number of decision trees in the forest and
         `random_state=42` which ensures reproducibility
 
-# Import necessary libraries 
+#Import necessary libraries 
 from sklearn.ensemble import RandomForestClassifier
 
-# Initialize the model
+#Initialize the model
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
 
-# Train the model
+#Train the model
 rf_model.fit(X_train_tr, y_train)
 
 ### Model Evaluation
 
-# Make predictions
+#Make predictions
 y_train_pred_rf = rf_model.predict(X_train_tr)
 y_test_pred_rf = rf_model.predict(X_test_tr)
 
@@ -523,10 +529,10 @@ Since the model is overfitting on the training data, i will hypertune the parame
 
 I will use `GridSearchCV` to find the best parameters.
 
-# Import libraries
+#Import libraries
 from sklearn.model_selection import GridSearchCV
 
-# Define the parameter grid
+#Define the parameter grid
 param_grid = {
     'n_estimators': [50, 100, 200],
     'max_depth': [5, 10, 20],
@@ -535,27 +541,27 @@ param_grid = {
     'class_weight': ['balanced'] 
 }
 
-# Use GridSearchCV for tuning
+#Use GridSearchCV for tuning
 grid_search = GridSearchCV(rf_model, param_grid, cv=3, scoring='recall', n_jobs=-1, verbose=2)
 
-# Fit on training data
+#Fit on training data
 grid_search.fit(X_train_tr, y_train)
 
-# Best parameters
+#Best parameters
 print("Best Parameters:", grid_search.best_params_)
 
 ### Model Evaluation
 
 Now to train the model with the best parameters then evaluate its perfomance.
 
-# Training the best model
+#Training the best model
 best_rf = grid_search.best_estimator_
 
-# Make predictions
+#Make predictions
 y_train_pred_best = best_rf.predict(X_train_tr)
 y_test_pred_best = best_rf.predict(X_test_tr)
 
-# Evaluate Performance
+#Evaluate Performance
 print("Training Accuracy:", accuracy_score(y_train, y_train_pred_best))
 print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_best))
 print()
@@ -612,11 +618,6 @@ The number of True Positives has also increased, from 76 to 116, implying the Tr
  * This model detects the True class much better than the untuned model, and this is evident from the recall score which has increased to 81% from 53%. 
  
 ## Feature Importance
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-
 feature_importance = best_rf.feature_importances_
 feature_importance_df = pd.DataFrame({'Feature': X_train_tr.columns, 'Importance': feature_importance})
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
@@ -627,18 +628,18 @@ The top 3 features contributing the most to customer churn are in agreement with
 
  ## 3. Decision Tree 
 
-# Import necessary libraries
+#Import necessary libraries
 from sklearn.tree import DecisionTreeClassifier
 
-# Initialize the model
+#Initialize the model
 dt_model = DecisionTreeClassifier(criterion='entropy', random_state=42)
 
-# Train the model
+#Train the model
 dt_model.fit(X_train_tr, y_train)
 
 ## Model Evaluation
 
-# Make predictions
+#Make predictions
 y_train_pred_dt = dt_model.predict(X_train_tr)
 y_test_pred_dt = dt_model.predict(X_test_tr)
 
@@ -734,7 +735,7 @@ To deal with the overfittig, i will hypertune the parameters. We will use `GridS
 
 from sklearn.model_selection import GridSearchCV
 
-# Define the parameter grid
+#Define the parameter grid
 param_grid_dt = {
     'max_depth': [3, 5, 7, 10],
     'min_samples_split': [2, 5, 10],
@@ -742,26 +743,26 @@ param_grid_dt = {
     'criterion': ['gini', 'entropy']
 }
 
-# Initialize Grid Search
-# grid_search_dt = GridSearchCV(estimator=dt_model, param_grid=param_grid_dt, cv=5, scoring='recall')
+#Initialize Grid Search
+#grid_search_dt = GridSearchCV(estimator=dt_model, param_grid=param_grid_dt, cv=5, scoring='recall')
 grid_search_dt = GridSearchCV(dt_model, param_grid_dt, cv=5, scoring='recall')
 
-# Fit on training data
+#Fit on training data
 grid_search_dt.fit(X_train_tr, y_train)
 
-# Best parameters
+#Best parameters
 print("Best Parameters:", grid_search_dt.best_params_)
 
 ## Model Evaluation
 
-# Train the best model
+#Train the best model
 best_dt = grid_search_dt.best_estimator_
 
-# Make predictions
+#Make predictions
 y_train_pred_best_dt = best_dt.predict(X_train_tr)
 y_test_pred_best_dt = best_dt.predict(X_test_tr)
 
-# Evaluate Performance
+#Evaluate Performance
 print("Training Accuracy:", accuracy_score(y_train, y_train_pred_best_dt))
 print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_best_dt))
 print()
