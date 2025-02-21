@@ -17,14 +17,23 @@ The stakeholders for this project are different departments in SyriaTel. These i
 
 ### Required Libraries
 import pandas as pd
+
 import matplotlib.pyplot as plt 
+
 import numpy as np
+
 from sklearn.preprocessing import OneHotEncoder
+
 from sklearn.preprocessing import StandardScaler scaler = StandardScaler()
+
 from sklearn.linear_model import LogisticRegression
+
 from sklearn.metrics import accuracy_score,confusion_matrix, classification_report
+
 from sklearn.ensemble import RandomForestClassifier
+
 from sklearn.model_selection import GridSearchCV
+
 from sklearn.tree import DecisionTreeClassifier
 
 
@@ -77,26 +86,8 @@ Here's a summary of the columns:
 
 * churn:  Whether the customer churned or not (True/False).
 
-#Loading and displaying the dataset
-df = pd.read_csv("Customer_Churn_Data.csv")
-df.head(10)
-
-#Rename the column names
-df.columns = df.columns.str.replace(" ", "_")
-print(df.columns)
 
 ## EXPLORATORY DATA ANALYSIS
-
-#Check the data types of the columns
-df.info()
-
-* We have object, integer, float and boolean data types. For modelling purposes, I will convert and transform relevant columns.
-
-
-* There are no misssing values in the columns as seen above.
-
-#Check descriptive statistics
-df.describe()
 
 ## Univariate Analysis
 
@@ -201,133 +192,22 @@ Let's now explore the relationship between some features and the target to look 
 
 # DATA PREPARATION
 
-
-#Define X and y
-y = df[['churn']]
-X = df.drop(['churn','phone_number'], axis=1)
-
-#Split the data
-
 Data preparation should happen after the data has been split to avoid data leakage.
 Data leakage will lead to overly optimistic perfomance metrics during model validation since the model may have had access to information before the split.
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-X_train.head()
+1. OneHotEncode categorical features
 
-X_test.head()
+2. Standardize Numeric Features
 
-## OneHotEncode categorical features
-
-
-#Define categorical columns
-cat_columns = ['state', 'area_code', 'international_plan', 'voice_mail_plan']
-
-#instantiate OneHotEncoder
-ohe = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
-
-#Fit and transform training data then convert to a dataframe
-X_train_ohe = pd.DataFrame(ohe.fit_transform(X_train[cat_columns]), 
-                           columns=ohe.get_feature_names_out(cat_columns), 
-                           index=X_train.index)
-
-#Transform Test set
-X_test_ohe = pd.DataFrame(ohe.transform(X_test[cat_columns]),
-                           index=X_test.index,
-                           columns=ohe.get_feature_names_out(cat_columns))
-
-#Drop original categorical columns from X_train and X_test
-X_train = X_train.drop(columns=cat_columns)
-X_test = X_test.drop(columns=cat_columns)
-
-#Concatenate one-hot encoded features back
-X_train = pd.concat([X_train, X_train_ohe], axis=1)
-X_test = pd.concat([X_test, X_test_ohe], axis=1)
-
-X_test = X_test[X_train.columns]
-
-X_train.head()
-
-X_test.head()
-
-## Standardize Numeric Features
-
-#Instantiate the scaler 
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-
-X_train_numeric= X_train.copy()
-
-#Filter to remain with relevant columns
-numeric_cols = df.select_dtypes('number')
-numeric_cols = numeric_cols.drop('area_code', axis=1)
-
-X_train_numeric = X_train_numeric[numeric_cols.columns] # a subset of X_train, untransformed
-
-#Standardize the training set
-X_train_standardized = pd.DataFrame(scaler.fit_transform(X_train_numeric),
-                                   columns=X_train_numeric.columns,
-                                   index=X_train_numeric.index)
-X_train_standardized.head()
-
-#Transform the test set
-X_test_standardized = pd.DataFrame(scaler.transform(X_test[numeric_cols.columns]),
-                                   columns=X_test[numeric_cols.columns].columns,
-                                   index=X_test[numeric_cols.columns].index)
-X_test_standardized.head()
-
-### Combining the datasets into one
-
-#Drop non-transformed columns
-cols_to_drop = cat_columns + numeric_cols.columns.tolist()
-X_train_filtered = X_train.drop(columns=cols_to_drop, errors='ignore')
-
-#Bring them together
-X_train_tr = pd.concat([X_train_filtered, X_train_ohe, X_train_standardized], axis=1)
-X_train_tr.head()
-
-X_train_tr.head(10)
-
-X_train_tr.info()
-
-The `'phone_number'` column seems to be a unique identifier for the customers so I am chooseing to drop it.
-
-### Combining Test set into one.
-
-#Drop non-transformed columns
-cols_to_drop = cat_columns + numeric_cols.columns.tolist()
-X_test_filtered = X_test.drop(columns=cols_to_drop, errors='ignore')
-
-#Bring them together
-X_test_tr = pd.concat([X_test_filtered, X_test_ohe, X_test_standardized], axis=1)
-X_test_tr.head()
 
 # MODELLING
 
 ## 1. Baseline Model
 
-Let's build a regression model, which will help classify whether a customer will leave, `True` or not, `False`
+The baseline model is a regression model, which will help classify whether a customer will leave, `True` or not, `False`
 
-logreg = LogisticRegression(fit_intercept=False, C=1e12, solver='liblinear')
-baseline_model = logreg.fit(X_train_tr, y_train)
-baseline_model
-
-### Model Evaluation
-
-y_pred_train = baseline_model.predict(X_train_tr)
-y_pred_test = baseline_model.predict(X_test_tr)
-
-from sklearn.metrics import accuracy_score,confusion_matrix, classification_report
-print("Training Set Accuracy:", accuracy_score(y_train, y_pred_train))
-print("Testing Set Accuracy:", accuracy_score(y_test, y_pred_test))
-print()
-print("Training Set Confusion Matrix:\n", confusion_matrix(y_train, y_pred_train))
-print("Testing Set Confusion Matrix:\n", confusion_matrix(y_test, y_pred_test))
-print()
-print("Training Set Classification Report:\n", classification_report(y_train, y_pred_train))
-print("Testing Set Classification Report:\n", classification_report(y_test, y_pred_test))
-
-### Interpretation
+### MODEL RESULTS
 
 **1. ACCURACY SCORE**
 
@@ -346,20 +226,24 @@ The accuracy score for the training test is 87.2% while that for the test set is
 
                               [ 238  102]]
  
-* True Negatives(TN) = 1932
-The model correctly predicted **1932** negative cases.
+* True Negatives(TN)
+
+  The model correctly predicted **1932** negative cases.
 
 
-* False Positives(FP) = 61 
-The model predicted **61** cases as positive, when infact they are negative.
+* False Positives(FP) 
+
+  The model predicted **61** cases as positive, when infact they are negative.
 
 
-* False Negatives(FN) = 238 
-The model has predicted **238** cases as negative when they are actually positive
+* False Negatives(FN)  
+
+  The model has predicted **238** cases as negative when they are actually positive
 
 
-* True Positives(TN) = 102
-The model has correctly predicted **102** positive cases.
+* True Positives(TN)
+
+  The model has correctly predicted **102** positive cases.
  
  
  `Testing Set Confusion Matrix:`
@@ -368,20 +252,24 @@ The model has correctly predicted **102** positive cases.
                                
                                [111  32]]
                                
-* True Negatives(TN) = 826
-The model correctly predicted **826** negative cases.
+* True Negatives(TN) 
+
+  The model correctly predicted **826** negative cases.
 
 
-* False Positives(FP) = 31 
-The model predicted **31** cases as positive, when infact they are negative.
+* False Positives(FP)  
+
+  The model predicted **31** cases as positive, when infact they are negative.
 
 
-* False Negatives(FN) = 111 
-The model has predicted **111** cases as negative when they are actually positive
+* False Negatives(FN)
+
+  The model has predicted **111** cases as negative when they are actually positive
 
 
-* True Positives(TN) = 32
-The model has correctly predicted **32** positive cases.
+* True Positives(TN)
+
+  The model has correctly predicted **32** positive cases.
 
 **************************
 From both the training and testing confusion matrices, it is evident that the model is better at predicting False, that a customer wont leave than at predicting True, that's when they will leave.
@@ -426,28 +314,7 @@ The parameters we will include in the model are:
         `n_estimators=100` which is the number of decision trees in the forest and
         `random_state=42` which ensures reproducibility
 
-#Initialize the model
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
-
-#Train the model
-rf_model.fit(X_train_tr, y_train)
-
-### Model Evaluation
-
-#Make predictions
-y_train_pred_rf = rf_model.predict(X_train_tr)
-y_test_pred_rf = rf_model.predict(X_test_tr)
-
-print("Training Accuracy:", accuracy_score(y_train, y_train_pred_rf))
-print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_rf))
-print()
-print("Training Confusion Matrix:\n", confusion_matrix(y_train, y_train_pred_rf))
-print("Testing Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred_rf))
-print()
-print("Classification Report:\n", classification_report(y_train, y_train_pred_rf))
-print("Classification Report:\n", classification_report(y_test, y_test_pred_rf))
-
-## Interpretation
+### MODEL RESULTS
 
 **1. ACCURACY**
 
@@ -521,51 +388,13 @@ The recall for the true class is at 53%, but it could be better.
 
 ## Hyperparameter Tuning
 
-Since the model is overfitting on the training data, i will hypertune the parameters to reduce it.
+Since the model is overfitting on the training data, let,s hypertune the parameters to reduce it.
 
 We will use `GridSearchCV` to find the best parameters.
 
-#Import libraries
-from sklearn.model_selection import GridSearchCV
 
-#Define the parameter grid
-param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [5, 10, 20],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 5],
-    'class_weight': ['balanced'] 
-}
+### MODEL RESULTS
 
-#Use GridSearchCV for tuning
-grid_search = GridSearchCV(rf_model, param_grid, cv=3, scoring='recall', n_jobs=-1, verbose=2)
-
-#Fit on training data
-grid_search.fit(X_train_tr, y_train)
-
-#Best parameters
-print("Best Parameters:", grid_search.best_params_)
-
-### Model Evaluation
-
-Now to train the model with the best parameters then evaluate its perfomance.
-
-#Training the best model
-best_rf = grid_search.best_estimator_
-
-#Make predictions
-y_train_pred_best = best_rf.predict(X_train_tr)
-y_test_pred_best = best_rf.predict(X_test_tr)
-
-#Evaluate Performance
-print("Training Accuracy:", accuracy_score(y_train, y_train_pred_best))
-print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_best))
-print()
-print("Testing Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred_best))
-print()
-print("Testing Classification Report:\n", classification_report(y_test, y_test_pred_best))
-
-## Interpretation
 **1. ACCURACY**
 
 * The overfitting in the train model has reduced. This is because the score has reduced from 100% to 95.1%.
@@ -580,20 +409,24 @@ print("Testing Classification Report:\n", classification_report(y_test, y_test_p
                      
                          [ 27  116]]
 
-* True Negatives(TN) = 822
-The model has correctly predicted **822** negative cases.
+* True Negatives(TN) 
+
+  The model has correctly predicted **822** negative cases.
 
 
-* False Positives(FP) = 32 
-The model has predicted **32** cases as positive, when infact they are negative.
+* False Positives(FP)
+
+  The model has predicted **32** cases as positive, when infact they are negative.
 
 
-* False Negatives(FN) = 27 
-The model has predicted **27** cases as negative when they are actually positive
+* False Negatives(FN) 
+
+  The model has predicted **27** cases as negative when they are actually positive
 
 
-* True Positives(TN) = 116
-The model has correctly predicted **116** positive cases.
+* True Positives(TN)
+
+  The model has correctly predicted **116** positive cases.
 
 
 Initially the model predicted 67 False Negatives, and i was aiming to reduce this number so that the number of customers who leave but are reported as still customers reduces.
@@ -614,38 +447,12 @@ The number of True Positives has also increased, from 76 to 116, implying the Tr
  * This model detects the True class much better than the untuned model, and this is evident from the recall score which has increased to 81% from 53%. 
  
 ## Feature Importance
-feature_importance = best_rf.feature_importances_
-feature_importance_df = pd.DataFrame({'Feature': X_train_tr.columns, 'Importance': feature_importance})
-feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-feature_importance_df.head(10)
-
 For this model, these are the features that heavily impact the predictions of a customer churning or not.
 The top 3 features contributing the most to customer churn are in agreement with the findings from the Exploratory Data Analysis.
 
  ## 3. Decision Tree 
  
-#Initialize the model
-dt_model = DecisionTreeClassifier(criterion='entropy', random_state=42)
-
-#Train the model
-dt_model.fit(X_train_tr, y_train)
-
-## Model Evaluation
-
-#Make predictions
-y_train_pred_dt = dt_model.predict(X_train_tr)
-y_test_pred_dt = dt_model.predict(X_test_tr)
-
-print("Training Accuracy:", accuracy_score(y_train, y_train_pred_dt))
-print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_dt))
-print()
-print("Training Confusion Matrix:\n", confusion_matrix(y_train, y_train_pred_dt))
-print("Testing Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred_dt))
-print()
-print("Training Set Classification Report:\n", classification_report(y_train, y_train_pred_dt))
-print("Testing Set Classification Report:\n", classification_report(y_test, y_test_pred_dt))
-
-### Interpretation
+### MODEL RESULTS
 
 **1. ACCURACY SCORE**
 
@@ -674,20 +481,24 @@ The accuracy score for the training test is 100% while that for the test set is 
                                
                                [43   100]]
                                
-* True Negatives(TN) = 808
-The model correctly predicted **808** negative cases.
+* True Negatives(TN)
+
+  The model correctly predicted **808** negative cases.
 
 
-* False Positives(FP) = 49 
-The model predicted **49** cases as positive, when infact they are negative.
+* False Positives(FP) 
+
+  The model predicted **49** cases as positive, when infact they are negative.
 
 
-* False Negatives(FN) = 43 
-The model has predicted **43** cases as negative when they are actually positive
+* False Negatives(FN) 
+
+  The model has predicted **43** cases as negative when they are actually positive
 
 
-* True Positives(TN) = 100
-The model has correctly predicted **100** positive cases.
+* True Positives(TN)
+
+  The model has correctly predicted **100** positive cases.
 
 **************************
 This model is missing 43 customers that churn (False Negatives) and is predicting that 49 retained customers churn (False Positives).
@@ -726,44 +537,7 @@ This model is missing 43 customers that churn (False Negatives) and is predictin
 
 To deal with the overfittig, let's hypertune the parameters. We will use `GridSearchCV` to find the best parameters.
 
-from sklearn.model_selection import GridSearchCV
-
-#Define the parameter grid
-param_grid_dt = {
-    'max_depth': [3, 5, 7, 10],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4],
-    'criterion': ['gini', 'entropy']
-}
-
-#Initialize Grid Search
-#grid_search_dt = GridSearchCV(estimator=dt_model, param_grid=param_grid_dt, cv=5, scoring='recall')
-grid_search_dt = GridSearchCV(dt_model, param_grid_dt, cv=5, scoring='recall')
-
-#Fit on training data
-grid_search_dt.fit(X_train_tr, y_train)
-
-#Best parameters
-print("Best Parameters:", grid_search_dt.best_params_)
-
-## Model Evaluation
-
-#Train the best model
-best_dt = grid_search_dt.best_estimator_
-
-#Make predictions
-y_train_pred_best_dt = best_dt.predict(X_train_tr)
-y_test_pred_best_dt = best_dt.predict(X_test_tr)
-
-#Evaluate Performance
-print("Training Accuracy:", accuracy_score(y_train, y_train_pred_best_dt))
-print("Testing Accuracy:", accuracy_score(y_test, y_test_pred_best_dt))
-print()
-print("Testing Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred_best_dt))
-print()
-print("Testing Classification Report:\n", classification_report(y_test, y_test_pred_best_dt))
-
-### Interpretation
+### MODEL RESULTS
 
 **1. ACCURACY**
 * This model has good accuracy scores for both the training and testing sets. There is no overfitting. 
