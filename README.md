@@ -100,14 +100,7 @@ This analysis is for exploring the distribution of some features for a better un
 
 **2. Which states have more customers?**
 
-state = df['state'].value_counts().head(20)
-
-plt.figure(figsize=(8,6))
-sns.barplot(x=state.index, y=state.values, palette='coolwarm')
-plt.title('Distribution of Customers across States')
-plt.xlabel('State')
-plt.ylabel('Number of Customers')
-plt.show()
+![Churn_distribution](Images/State_Distribution.PNG)
 
 * The above plot shows the distribution of customers across the top 20 states with the most customers.
 
@@ -122,10 +115,7 @@ Let's now explore the relationship between some features and the target to look 
 
 **1. International plan and Churn**
 
-plt.figure(figsize=(8,6))
-sns.countplot(x="international_plan", hue="churn", data=df, palette="coolwarm")
-plt.title("Churn by International Plan")
-plt.show()
+![Churn_distribution](Images/Churn_vs_International_Plan.PNG)
 
 **FINDINGS**
 
@@ -137,10 +127,7 @@ plt.show()
 
 **2. Voice Mail Plan and Churn**
 
-plt.figure(figsize=(8,6))
-sns.countplot(x="voice_mail_plan", hue="churn", data=df, palette="coolwarm")
-plt.title("Churn by Voice Mail Plan")
-plt.show()
+![Churn_distribution](Images/Voice_mail_plan_vs_Churn.PNG)
 
 **FINDINGS**
 
@@ -150,15 +137,7 @@ plt.show()
 
 **3. Charges and Churn**
 
-day = df['total_day_charge'].mean()
-eve = df['total_eve_charge'].mean()
-night = df['total_night_charge'].mean()
-
-plt.figure(figsize=(8,6))
-plt.bar(['Day', 'Evening', 'Night'], [day, eve, night])
-plt.ylabel('Average Charge')
-plt.title('Average Charge by Time of Day')
-plt.show()
+![Churn_distribution](Images/Average_Charge_by_Time_of_Day.PNG)
 
 **FINDINGS**
 
@@ -166,10 +145,7 @@ plt.show()
 
 **4. Total Day Minutes and Churn**
 
-plt.figure(figsize=(8,6))
-sns.boxplot(x="churn", y="total_day_minutes", data=df)
-plt.title("Total Day Minutes vs. Churn")
-plt.show()
+![Churn_distribution](Images/Total_day_minutes_vs_Churn.PNG)
 
 **FINDINGS**
 
@@ -179,10 +155,7 @@ plt.show()
 
 **5. Total Night Minutes and Churn**
 
-plt.figure(figsize=(8,6))
-sns.boxplot(x="churn", y="total_night_minutes", data=df)
-plt.title("Total Night Minutes vs. Churn")
-plt.show()
+![Churn_distribution](Images/Total_Night_Minutes_vs_Churn.PNG)
 
 **FINDINGS**
 
@@ -194,23 +167,12 @@ plt.show()
 
 **6. Customer Service Calls and Churn**
 
-plt.figure(figsize=(8,6))
-sns.boxplot(x="churn", y="customer_service_calls", data=df)
-plt.title("Customer Service Calls vs Churn")
-plt.show()
+![Churn_distribution](Images/Customer_service_calls_vs_Churn.PNG)
 
 **FINDINGS**
 
 * Most customers who call customer service have churned compared to those who haven't churned.
 
-## Multivariate
-
-plt.figure(figsize=(14, 14))
-sns.heatmap(df.corr(), annot=True, cmap="coolwarm", linewidths=0.5)
-plt.title("Feature Correlation Heatmap")
-plt.show()
-
-* This shows the relatioships between all the numeric features in the dataset.
 
 ### OVERALL FINDINGS AND RECOMMENDATIONS
 
